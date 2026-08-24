@@ -35,12 +35,12 @@
 ## ✨ Возможности
 
 - 🔍 **Многоуровневый движок** — YARA-правила + эвристики (энтропия, паттерны, scoring)
-- 🦀 **Rust-модуль shadow_engine** — независимая оценка (энтропия + маркеры, скор 0-100) для подтверждения YARA
+- 🦀 **Rust shadow_engine** — отдельный auditable-компонент для тестов и CLI-проверок; GUI 1.1 не вшивает неподписанный helper EXE, чтобы снизить ложные AV-срабатывания
 - 🛡️ **Real-time защита** — мониторинг DACL, сети, автоочистка
 - 📂 **Автозагрузки** — уровень Autoruns (Run/RunOnce, Services, Drivers, Tasks, Winlogon, AppInit, BootExecute) с отключением без удаления
 - 🔓 **Деобфускатор** — Base64, XOR, реверс строк
 - 🖥️ **CLI-интерфейс** — `ShadowScan.exe --scan файлы...` с выводом JSON
-- 📦 **Вшитые ресурсы** — yr.exe, rules.yarx, signatures.json распаковываются при запуске
+- 📦 **Вшитые ресурсы** — yr.exe, rules.yarx, modern_stealers.yar и signatures.json распаковываются при запуске
 - 📊 **40 string-правил** — детекты njRAT, DarkComet, Gh0st, XWorm, AsyncRAT и других семейств
 - 🦀 **YARA-X v1.19.0 из исходников** — официальный runtime и CLI VirusTotal в `third_party/yara-x` с BSD-3-Clause лицензией
 - 🧬 **Современные профили стилеров** — составные правила для Myth Stealer, EDDIESTEALER-style, generic Rust infostealers и ACR/Amatera-style browser theft chains
@@ -52,7 +52,7 @@
 | Файл | Описание |
 |:-----|:---------|
 | `ScannerCore.cs` | Основной движок сканирования (~1700 строк): YARA, эвристики, scoring |
-| `shadow_engine/` | Rust-модуль: независимый анализ энтропии и маркеров |
+| `shadow_engine/` | Опциональный Rust-компонент для CLI и тестов; GUI-пакет 1.1 его не вшивает |
 | `RtProtection.cs` | Real-time защита: DACL-урезание, мониторинг сети, автоочистка |
 | `AutorunsManager.cs` | Управление автозагрузкой: чтение, отключение, включение |
 | `Deobfuscator.cs` | Базовый деобфускатор: Base64, XOR, reverse strings |
@@ -206,12 +206,12 @@ MIT License. Проект является оборонительным инст
 ## ✨ Features
 
 - 🔍 **Multi-layer engine** — YARA rules + heuristics (entropy, patterns, scoring)
-- 🦀 **Rust shadow_engine** — independent scoring (entropy + markers, score 0-100) to cross-validate YARA
+- 🦀 **Rust shadow_engine** — auditable standalone component for CLI/tests; GUI 1.1 does not bundle an unsigned helper EXE to reduce endpoint-AV false positives
 - 🛡️ **Real-time protection** — DACL monitoring, network monitoring, auto-remediation
 - 📂 **Autoruns manager** — full Autoruns coverage (Run/RunOnce, Services, Drivers, Tasks, Winlogon, AppInit, BootExecute) with disable/enable (no deletion)
 - 🔓 **Deobfuscator** — Base64, XOR, string reversal
 - 🖥️ **CLI interface** — `ShadowScan.exe --scan files...` with JSON output
-- 📦 **Embedded resources** — yr.exe, rules.yarx, signatures.json extracted on first run
+- 📦 **Embedded resources** — yr.exe, rules.yarx, modern_stealers.yar, and signatures.json are extracted at runtime
 - 📊 **40 string rules** — detections for njRAT, DarkComet, Gh0st, XWorm, AsyncRAT and more
 - 🦀 **YARA-X v1.19.0 from source** — the official VirusTotal runtime and CLI are vendored under `third_party/yara-x` under the BSD-3-Clause license
 - 🧬 **Modern stealer profiles** — composite rules for Myth Stealer, EDDIESTEALER-style, generic Rust infostealers, and ACR/Amatera-style browser-theft chains
@@ -223,7 +223,7 @@ MIT License. Проект является оборонительным инст
 | File | Description |
 |:-----|:------------|
 | `ScannerCore.cs` | Main scanning engine (~1700 LOC): YARA, heuristics, scoring |
-| `shadow_engine/` | Rust module: independent entropy and marker analysis |
+| `shadow_engine/` | Optional Rust component for CLI/tests; GUI 1.1 does not bundle it |
 | `RtProtection.cs` | Real-time protection: DACL trimming, network monitoring, auto-remediation |
 | `AutorunsManager.cs` | Autoruns management: read, disable, enable |
 | `Deobfuscator.cs` | Basic deobfuscator: Base64, XOR, reverse strings |

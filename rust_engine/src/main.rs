@@ -1,9 +1,8 @@
 // ShadowEngine — лёгкий эвристический движок на Rust для ShadowScan.
-// Дружит с yara-x: берёт те же файлы, делает независимый быстрый анализ
-// (энтропия, подозрительные строки, упаковка) и выводит JSON-скор 0..100.
-// C#-обёртка использует скор, чтобы ПОДТВЕРЖДАТЬ или ОТКЛОНЯТЬ совпадения
-// yara — слабые одиночные yara-хиты на чистом по эвристикам файле
-// отклоняются (меньше ложных срабатываний).
+// Безопасный вспомогательный анализатор файлов: считает энтропию и проверяет
+// нейтральные структурные признаки PE. Семейные и malware-specific строки
+// находятся только в прозрачных YARA/JSON правилах, а не в этом бинарнике.
+// C# может использовать его как опциональный независимый второй скор.
 //
 // Сборка:  cargo build --release
 // Использование:  shadow_engine.exe file1 file2 ...  ->  JSON в stdout
@@ -13,130 +12,15 @@ use std::fs::File;
 use std::io::{self, Read};
 use std::process;
 
-/// Опасные строки-маркеры (быстрый поиск по первым 4 МБ файла).
-const MARKERS: &[&str] = &[
-    "powershell -enc",
-    "-WindowStyle Hidden",
-    "DownloadString",
-    "Invoke-Expression",
-    "IEX(",
-    "CreateRemoteThread",
-    "VirtualAllocEx",
-    "WriteProcessMemory",
-    "stratum+tcp",
-    "mimikatz",
-    "api.telegram.org",
-    "discord.com/api/webhooks",
-    "Login Data",
-    "vssadmin delete shadows",
-    "meterpreter",
-    "msfvenom",
-    "webhook",
-    "shellcode",
-    "CurrentVersion\\Run",
-    "taskkill /f /im",
-    "DisableAntiSpyware",
-    "ConsentPromptBehaviorAdmin",
-    "Winlogon",
-    "wscript.exe",
-    "LogonUI.exe",
-    "takeown",
-    "icacls",
-];
-
-// Rust runtime strings are not malicious by themselves. They become useful
-// only when combined with credential-store and transport indicators.
-const RUST_RUNTIME_MARKERS: &[&str] = &[
-    "rust_eh_personality",
-    "core::panicking",
-    "core::result::unwrap_failed",
-    "rustc_demangle",
-    "panicking.rs",
-    "panic_fmt",
-    "alloc::",
-];
-
-const BROWSER_STORE_MARKERS: &[&str] = &[
-    "Login Data",
-    "Local State",
-    "Cookies",
-    "Web Data",
-    "key4.db",
-    "logins.json",
-    "Local Storage\\leveldb",
-    "password-store",
-    "wallet.dat",
-    "Telegram Desktop\\tdata",
-];
-
-const COLLECTION_TRANSPORT_MARKERS: &[&str] = &[
-    "CryptUnprotectData",
-    "webSocketDebuggerUrl",
-    "Target.createTarget",
-    "api.telegram.org",
-    "discord.com/api/webhooks",
-    "webhook",
-    "api/handler",
-    "Base64",
-    "HTTP/1.1",
-    "POST",
-];
-
-const MYTH_MARKERS: &[&str] = &[
-    "native-windows-gui",
-    "native-dialog",
-    "include-crypt",
-    "memexec",
-    "obfstr",
-    "myth-key",
-    "winlnk.exe",
-    ".lnkk",
-];
-
-const EDDIE_MARKERS: &[&str] = &[
-    "chromium_hound.rs",
-    "search_pattern.rs",
-    "search_entry.rs",
-    "additional_task.rs",
-    "WaitOnAddress",
-    "self_delete",
-];
-
-fn contains_marker(data: &[u8], marker: &str) -> bool {
-    !marker.is_empty()
-        && data
-            .windows(marker.len())
-            .any(|window| window.eq_ignore_ascii_case(marker.as_bytes()))
-}
-
-fn count_markers(data: &[u8], markers: &[&str]) -> usize {
-    markers
-        .iter()
-        .filter(|marker| contains_marker(data, marker))
-        .count()
-}
-
-// Composite profiles deliberately require multiple independent signal groups.
-// This keeps ordinary Rust applications and browser utilities below the threat
-// threshold while still catching stripped Rust infostealer builds.
-fn rust_infostealer_profile(data: &[u8]) -> bool {
-    count_markers(data, RUST_RUNTIME_MARKERS) >= 2
-        && count_markers(data, BROWSER_STORE_MARKERS) >= 2
-        && count_markers(data, COLLECTION_TRANSPORT_MARKERS) >= 1
-}
-
-fn myth_profile(data: &[u8]) -> bool {
-    count_markers(data, MYTH_MARKERS) >= 3
-        && count_markers(data, BROWSER_STORE_MARKERS) >= 1
-        && (contains_marker(data, "CryptUnprotectData")
-            || contains_marker(data, "clipboard")
-            || contains_marker(data, "screenshot"))
-}
-
-fn eddie_profile(data: &[u8]) -> bool {
-    count_markers(data, EDDIE_MARKERS) >= 2
-        && count_markers(data, BROWSER_STORE_MARKERS) >= 2
-        && count_markers(data, COLLECTION_TRANSPORT_MARKERS) >= 1
+// Keep the helper binary focused on file structure. Malware-family strings
+// live in the auditable YARA/JSON rule data, not in this executable. This avoids
+// making a small defensive helper look like a malware specimen to endpoint AV.
+fn looks_like_pe(data: &[u8]) -> bool {
+    if data.len() < 0x40 || &data[0..2] != b"MZ" {
+        return false;
+    }
+    let pe_offset = u32::from_le_bytes([data[0x3c], data[0x3d], data[0x3e], data[0x3f]]) as usize;
+    data.get(pe_offset..pe_offset.saturating_add(4)) == Some(b"PE\0\0")
 }
 
 /// Энтропия Шеннона по байтам (первые 1 МБ).
@@ -184,37 +68,20 @@ fn analyze(path: &str) -> String {
                 score += 6;
             }
 
-            // Опасные строки: 2+ маркера — сильный сигнал
-            for m in MARKERS {
-                if data
-                    .windows(m.len())
-                    .any(|w| w.eq_ignore_ascii_case(m.as_bytes()))
-                {
-                    hits.push(m);
-                    score += 8;
-                    if hits.len() >= 4 {
-                        break;
-                    }
+            // PE-заголовок и высокая энтропия — независимые структурные сигналы.
+            if looks_like_pe(&data) {
+                hits.push("pe_structure");
+                score += 2;
+                if e > 7.4 {
+                    hits.push("high_entropy_pe");
+                    score += 6;
                 }
             }
 
-            // NOP-слайд (shellcode-маркер) в первых 4 МБ
+            // NOP-слайд в первых 4 МБ — нейтральный байтовый структурный сигнал.
             if data.windows(32).any(|w| w.iter().all(|&b| b == 0x90)) {
                 hits.push("nop_slide");
                 score += 6;
-            }
-
-            if rust_infostealer_profile(&data) {
-                hits.push("rust_infostealer_profile");
-                score += 18;
-            }
-            if myth_profile(&data) {
-                hits.push("myth_rust_profile");
-                score += 14;
-            }
-            if eddie_profile(&data) {
-                hits.push("eddie_rust_profile");
-                score += 14;
             }
         }
         Err(_) => {
@@ -233,6 +100,7 @@ fn analyze(path: &str) -> String {
         stem.rsplit_once('.').is_some()
     });
     if double_ext {
+        hits.push("double_extension");
         score += 5;
     }
 
@@ -277,48 +145,22 @@ fn json_escape(s: &str) -> String {
 mod tests {
     use super::*;
 
-    fn fixture(parts: &[&str]) -> Vec<u8> {
-        parts.join("\\n").into_bytes()
+    fn pe_fixture() -> Vec<u8> {
+        let mut data = vec![0u8; 0x90];
+        data[0..2].copy_from_slice(b"MZ");
+        data[0x3c..0x40].copy_from_slice(&(0x80u32).to_le_bytes());
+        data[0x80..0x84].copy_from_slice(b"PE\0\0");
+        data
     }
 
     #[test]
-    fn rust_profile_requires_composite_signals() {
-        let data = fixture(&[
-            "rust_eh_personality",
-            "core::panicking",
-            "Login Data",
-            "Cookies",
-            "CryptUnprotectData",
-        ]);
-        assert!(rust_infostealer_profile(&data));
-        assert!(!rust_infostealer_profile(&fixture(&[
-            "rust_eh_personality",
-            "core::panicking",
-        ])));
+    fn recognizes_pe_structure_without_family_strings() {
+        assert!(looks_like_pe(&pe_fixture()));
     }
 
     #[test]
-    fn myth_profile_requires_loader_and_collection_signals() {
-        let data = fixture(&[
-            "native-windows-gui",
-            "include-crypt",
-            "memexec",
-            "Login Data",
-            "clipboard",
-        ]);
-        assert!(myth_profile(&data));
-    }
-
-    #[test]
-    fn eddie_profile_accepts_tasking_and_browser_signals() {
-        let data = fixture(&[
-            "chromium_hound.rs",
-            "search_pattern.rs",
-            "Login Data",
-            "Local State",
-            "api/handler",
-        ]);
-        assert!(eddie_profile(&data));
+    fn rejects_non_pe_data() {
+        assert!(!looks_like_pe(b"ordinary text data"));
     }
 }
 
