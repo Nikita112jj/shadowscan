@@ -1,0 +1,54 @@
+name: Windows release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build YARA-X and validate Rust source
+        shell: pwsh
+        run: .\scripts\build-yara-x.ps1
+
+      - name: Publish NativeAOT GUI
+        shell: pwsh
+        run: >-
+          dotnet publish native_gui/native_gui.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishAot=true -p:Version=1.1.0
+          -p:AssemblyVersion=1.1.0.0 -p:FileVersion=1.1.0.0
+          -p:InformationalVersion=1.1
+          -o dist/ShadowScan-v1.1 --nologo
+
+      - name: Verify package contents
+        shell: pwsh
+        run: |
+          if (-not (Test-Path dist/ShadowScan-v1.1/ShadowScan.exe)) { throw 'ShadowScan.exe was not produced' }
+          $exe = Get-Item dist/ShadowScan-v1.1/ShadowScan.exe
+          if ($exe.Length -lt 1MB) { throw 'ShadowScan.exe is unexpectedly small' }
+          Get-FileHash $exe -Algorithm SHA256
+          Get-ChildItem dist/ShadowScan-v1.1 -File | Select-Object Name,Length
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShadowScan-v1.1-windows-x64
+          path: dist/ShadowScan-v1.1/ShadowScan.exe
