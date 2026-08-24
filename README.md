@@ -2,6 +2,8 @@
 
 **Офлайн-антивирус статического анализа** — standalone exe на C# .NET 8 NativeAOT + Avalonia 11.2.5 (~75 МБ), не требует установки и подключения к интернету.
 
+### ⬇️ [Скачать ShadowScan.exe (Windows 11)](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/ShadowScan.exe)
+
 ---
 
 ## 📸 Скриншоты
@@ -155,6 +157,8 @@ MIT License. Проект является оборонительным инст
 # 🛡️ ShadowScan
 
 **Offline static-analysis antivirus** — standalone exe built with C# .NET 8 NativeAOT + Avalonia 11.2.5 (~75 MB), no installation or internet connection required.
+
+### ⬇️ [Download ShadowScan.exe (Windows 11)](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/ShadowScan.exe)
 
 ---
 
