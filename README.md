@@ -4,6 +4,22 @@
 
 ---
 
+## 📸 Скриншоты
+
+### Скан
+![Скан](screenshots/scan.png)
+
+### Журнал
+![Журнал](screenshots/journal.png)
+
+### Настройки
+![Настройки](screenshots/settings.png)
+
+### Карантин
+![Карантин](screenshots/quarantine.png)
+
+---
+
 ## ✨ Возможности
 
 - 🔍 **Многоуровневый движок** — YARA-правила + эвристики (энтропия, паттерны, scoring)
@@ -141,6 +157,20 @@ MIT License. Проект является оборонительным инст
 **Offline static-analysis antivirus** — standalone exe built with C# .NET 8 NativeAOT + Avalonia 11.2.5 (~75 MB), no installation or internet connection required.
 
 ---
+
+## 📸 Screenshots
+
+### Scan
+![Scan](screenshots/scan.png)
+
+### Detection Log
+![Journal](screenshots/journal.png)
+
+### Settings
+![Settings](screenshots/settings.png)
+
+### Quarantine
+![Quarantine](screenshots/quarantine.png)
 
 ---
 
