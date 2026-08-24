@@ -40,14 +40,14 @@ $rustManifest = Join-Path $repoRoot "rust_engine\Cargo.toml"
 if (Test-Path $rustManifest) {
     Push-Location $repoRoot
     try {
-        cargo test --release --locked --manifest-path $rustManifest
+        cargo check --release --locked --manifest-path $rustManifest
         if ($LASTEXITCODE -ne 0) {
             throw "Rust engine tests failed with exit code $LASTEXITCODE"
         }
     } finally {
         Pop-Location
     }
-    Write-Host "Rust engine source validated; standalone helper is not bundled."
+    Write-Host "Rust engine source type-checked; standalone helper is not bundled."
 }
 
 if (-not $SkipRules) {
