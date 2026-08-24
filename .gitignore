@@ -25,3 +25,7 @@ _fp_*.py
 # OS
 Thumbs.db
 Desktop.ini
+
+# Build tools (not part of the project)
+*.py
+screenshots/
