@@ -1,3 +1,13 @@
+<div align="center">
+
+[🇷🇺 Русский](#russian) | [🇬🇧 English](#english)
+
+</div>
+
+---
+
+<a id="russian"></a>
+
 # 🛡️ ShadowScan
 
 **Офлайн-антивирус статического анализа** — standalone exe на C# .NET 8 NativeAOT + Avalonia 11.2.5 (~75 МБ), не требует установки и подключения к интернету.
@@ -153,6 +163,8 @@ MIT License. Проект является оборонительным инст
 <br/>
 
 ---
+
+<a id="english"></a>
 
 # 🛡️ ShadowScan
 
