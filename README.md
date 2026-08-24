@@ -12,23 +12,23 @@
 
 **Офлайн-антивирус статического анализа** — standalone exe на C# .NET 8 NativeAOT + Avalonia 11.2.5 (~75 МБ), не требует установки и подключения к интернету.
 
-### ⬇️ [Скачать ShadowScan.exe (Windows 11)](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/ShadowScan.exe)
+### ⬇️ [Скачать ShadowScan.exe (Windows 11)](https://github.com/Nikita112jj/shadowscan/releases/download/v1.1/ShadowScan.exe)
 
 ---
 
 ## 📸 Скриншоты
 
 ### Скан
-![Скан](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/scan.png)
+![Скан](https://github.com/Nikita112jj/shadowscan/releases/download/v1.1/scan.png)
 
 ### Журнал
-![Журнал](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/journal.png)
+![Журнал](https://github.com/Nikita112jj/shadowscan/releases/download/v1.1/journal.png)
 
 ### Настройки
-![Настройки](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/settings.png)
+![Настройки](https://github.com/Nikita112jj/shadowscan/releases/download/v1.1/settings.png)
 
 ### Карантин
-![Карантин](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/quarantine.png)
+![Карантин](https://github.com/Nikita112jj/shadowscan/releases/download/v1.1/quarantine.png)
 
 ---
 
@@ -183,23 +183,23 @@ MIT License. Проект является оборонительным инст
 
 **Offline static-analysis antivirus** — standalone exe built with C# .NET 8 NativeAOT + Avalonia 11.2.5 (~75 MB), no installation or internet connection required.
 
-### ⬇️ [Download ShadowScan.exe (Windows 11)](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/ShadowScan.exe)
+### ⬇️ [Download ShadowScan.exe (Windows 11)](https://github.com/Nikita112jj/shadowscan/releases/download/v1.1/ShadowScan.exe)
 
 ---
 
 ## 📸 Screenshots
 
 ### Scan
-![Scan](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/scan.png)
+![Scan](https://github.com/Nikita112jj/shadowscan/releases/download/v1.1/scan.png)
 
 ### Detection Log
-![Journal](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/journal.png)
+![Journal](https://github.com/Nikita112jj/shadowscan/releases/download/v1.1/journal.png)
 
 ### Settings
-![Settings](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/settings.png)
+![Settings](https://github.com/Nikita112jj/shadowscan/releases/download/v1.1/settings.png)
 
 ### Quarantine
-![Quarantine](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/quarantine.png)
+![Quarantine](https://github.com/Nikita112jj/shadowscan/releases/download/v1.1/quarantine.png)
 
 ---
 
