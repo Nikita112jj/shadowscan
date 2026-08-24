@@ -1,5 +1,6 @@
 # Build output
 *.exe
+modern_stealers.yarx
 *.dll
 *.pdb
 *.log
@@ -8,6 +9,7 @@ bin/
 obj/
 build/
 rust_engine/target/
+third_party/yara-x/target/
 
 # Logs
 logs/

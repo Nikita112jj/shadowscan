@@ -44,6 +44,101 @@ const MARKERS: &[&str] = &[
     "icacls",
 ];
 
+// Rust runtime strings are not malicious by themselves. They become useful
+// only when combined with credential-store and transport indicators.
+const RUST_RUNTIME_MARKERS: &[&str] = &[
+    "rust_eh_personality",
+    "core::panicking",
+    "core::result::unwrap_failed",
+    "rustc_demangle",
+    "panicking.rs",
+    "panic_fmt",
+    "alloc::",
+];
+
+const BROWSER_STORE_MARKERS: &[&str] = &[
+    "Login Data",
+    "Local State",
+    "Cookies",
+    "Web Data",
+    "key4.db",
+    "logins.json",
+    "Local Storage\\leveldb",
+    "password-store",
+    "wallet.dat",
+    "Telegram Desktop\\tdata",
+];
+
+const COLLECTION_TRANSPORT_MARKERS: &[&str] = &[
+    "CryptUnprotectData",
+    "webSocketDebuggerUrl",
+    "Target.createTarget",
+    "api.telegram.org",
+    "discord.com/api/webhooks",
+    "webhook",
+    "api/handler",
+    "Base64",
+    "HTTP/1.1",
+    "POST",
+];
+
+const MYTH_MARKERS: &[&str] = &[
+    "native-windows-gui",
+    "native-dialog",
+    "include-crypt",
+    "memexec",
+    "obfstr",
+    "myth-key",
+    "winlnk.exe",
+    ".lnkk",
+];
+
+const EDDIE_MARKERS: &[&str] = &[
+    "chromium_hound.rs",
+    "search_pattern.rs",
+    "search_entry.rs",
+    "additional_task.rs",
+    "WaitOnAddress",
+    "self_delete",
+];
+
+fn contains_marker(data: &[u8], marker: &str) -> bool {
+    !marker.is_empty()
+        && data
+            .windows(marker.len())
+            .any(|window| window.eq_ignore_ascii_case(marker.as_bytes()))
+}
+
+fn count_markers(data: &[u8], markers: &[&str]) -> usize {
+    markers
+        .iter()
+        .filter(|marker| contains_marker(data, marker))
+        .count()
+}
+
+// Composite profiles deliberately require multiple independent signal groups.
+// This keeps ordinary Rust applications and browser utilities below the threat
+// threshold while still catching stripped Rust infostealer builds.
+fn rust_infostealer_profile(data: &[u8]) -> bool {
+    count_markers(data, RUST_RUNTIME_MARKERS) >= 2
+        && count_markers(data, BROWSER_STORE_MARKERS) >= 2
+        && count_markers(data, COLLECTION_TRANSPORT_MARKERS) >= 1
+}
+
+fn myth_profile(data: &[u8]) -> bool {
+    count_markers(data, MYTH_MARKERS) >= 3
+        && count_markers(data, BROWSER_STORE_MARKERS) >= 1
+        && (contains_marker(data, "CryptUnprotectData")
+            || contains_marker(data, "clipboard")
+            || contains_marker(data, "screenshot"))
+}
+
+fn eddie_profile(data: &[u8]) -> bool {
+    count_markers(data, EDDIE_MARKERS) >= 2
+        && count_markers(data, BROWSER_STORE_MARKERS) >= 2
+        && count_markers(data, COLLECTION_TRANSPORT_MARKERS) >= 1
+}
+
 /// Энтропия Шеннона по байтам (первые 1 МБ).
 fn entropy(data: &[u8]) -> f64 {
     if data.is_empty() {
@@ -66,7 +161,7 @@ fn entropy(data: &[u8]) -> f64 {
 
 /// Читает файл (первые 4 МБ достаточно для строк/энтропии).
 fn read_head(path: &str) -> io::Result<Vec<u8>> {
-    let mut f = File::open(path)?;
+    let f = File::open(path)?;
     let mut buf = Vec::with_capacity(4 << 20);
     f.take(4 << 20).read_to_end(&mut buf)?;
     Ok(buf)
@@ -91,7 +186,10 @@ fn analyze(path: &str) -> String {
 
             // Опасные строки: 2+ маркера — сильный сигнал
             for m in MARKERS {
-                if data.windows(m.len()).any(|w| w.eq_ignore_ascii_case(m.as_bytes())) {
+                if data
+                    .windows(m.len())
+                    .any(|w| w.eq_ignore_ascii_case(m.as_bytes()))
+                {
                     hits.push(m);
                     score += 8;
                     if hits.len() >= 4 {
@@ -104,6 +202,19 @@ fn analyze(path: &str) -> String {
             if data.windows(32).any(|w| w.iter().all(|&b| b == 0x90)) {
                 hits.push("nop_slide");
                 score += 6;
+            }
+
+            if rust_infostealer_profile(&data) {
+                hits.push("rust_infostealer_profile");
+                score += 18;
+            }
+            if myth_profile(&data) {
+                hits.push("myth_rust_profile");
+                score += 14;
+            }
+            if eddie_profile(&data) {
+                hits.push("eddie_rust_profile");
+                score += 14;
             }
         }
         Err(_) => {
@@ -160,6 +271,55 @@ fn json_escape(s: &str) -> String {
     }
     out.push('"');
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn fixture(parts: &[&str]) -> Vec<u8> {
+        parts.join("\\n").into_bytes()
+    }
+
+    #[test]
+    fn rust_profile_requires_composite_signals() {
+        let data = fixture(&[
+            "rust_eh_personality",
+            "core::panicking",
+            "Login Data",
+            "Cookies",
+            "CryptUnprotectData",
+        ]);
+        assert!(rust_infostealer_profile(&data));
+        assert!(!rust_infostealer_profile(&fixture(&[
+            "rust_eh_personality",
+            "core::panicking",
+        ])));
+    }
+
+    #[test]
+    fn myth_profile_requires_loader_and_collection_signals() {
+        let data = fixture(&[
+            "native-windows-gui",
+            "include-crypt",
+            "memexec",
+            "Login Data",
+            "clipboard",
+        ]);
+        assert!(myth_profile(&data));
+    }
+
+    #[test]
+    fn eddie_profile_accepts_tasking_and_browser_signals() {
+        let data = fixture(&[
+            "chromium_hound.rs",
+            "search_pattern.rs",
+            "Login Data",
+            "Local State",
+            "api/handler",
+        ]);
+        assert!(eddie_profile(&data));
+    }
 }
 
 fn main() {

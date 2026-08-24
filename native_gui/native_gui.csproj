@@ -27,7 +27,9 @@
     <EmbeddedResource Include="native\av_libglesv2.dll" LogicalName="av_libglesv2.dll" />
     <!-- Движок yara + правила вшиты: exe работает standalone, без файлов рядом -->
     <EmbeddedResource Include="..\yr.exe" LogicalName="yr.exe" />
+    <EmbeddedResource Include="..\shadow_engine.exe" LogicalName="shadow_engine.exe" />
     <EmbeddedResource Include="..\rules.yarx" LogicalName="rules.yarx" />
     <EmbeddedResource Include="..\signatures.json" LogicalName="signatures.json" />
+    <EmbeddedResource Include="..\rules\modern_stealers.yar" LogicalName="modern_stealers.yar" />
   </ItemGroup>
 </Project>

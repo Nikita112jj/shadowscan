@@ -324,7 +324,7 @@ static partial class ScannerCore {
     {
         try
         {
-            string exe = Path.Combine(AppContext.BaseDirectory, "shadow_engine.exe");
+            string exe = _rustExe ?? Path.Combine(AppContext.BaseDirectory, "shadow_engine.exe");
             if (!File.Exists(exe)) return null;
             if (targets.Count == 0) return null;
             // максимум 200 файлов за запуск (батч)
@@ -385,27 +385,39 @@ static partial class ScannerCore {
 
     // Внешний движок yara-x (BSD-3-Clause): yr.exe + rules.yarx рядом с engine.exe
     static bool _yaraReady;
-    static string _yaraExe, _yaraRules;
+    static string _yaraExe, _yaraRules, _yaraModernRules, _rustExe;
 
     public static void InitYara() {
         if (_yaraReady) return;
         _yaraReady = true;
-        // ищем в подпапке engine_ext или в корне (PyInstaller)
+        // Ищем бинарник и оба набора правил рядом с exe. Source rules дают
+        // обновляемую защиту, а rules.yarx сохраняет совместимость со старой базой.
         string[] candidates = {
             Path.Combine(AppContext.BaseDirectory, "engine_ext"),
             AppContext.BaseDirectory,
         };
         foreach (var dir in candidates) {
             string exe = Path.Combine(dir, "yr.exe");
-            string rules = Path.Combine(dir, "rules.yarx");
-            if (File.Exists(exe) && File.Exists(rules)) { _yaraExe = exe; _yaraRules = rules; return; }
+            string rust = Path.Combine(dir, "shadow_engine.exe");
+            if (File.Exists(rust)) _rustExe = rust;
+            if (!File.Exists(exe)) continue;
+            _yaraExe = exe;
+            string compiled = Path.Combine(dir, "rules.yarx");
+            string modernCompiled = Path.Combine(dir, "modern_stealers.yarx");
+            string modernSource = Path.Combine(dir, "modern_stealers.yar");
+            if (File.Exists(compiled)) _yaraRules = compiled;
+            if (File.Exists(modernCompiled)) _yaraModernRules = modernCompiled;
+            else if (File.Exists(modernSource)) _yaraModernRules = modernSource;
+            if (_yaraRules != null || _yaraModernRules != null) return;
         }
-        // Файлов рядом нет (exe standalone) — распаковываем вшитые копии
-        if (TryExtractResource("yr.exe", out string yexe) && TryExtractResource("rules.yarx", out string yrules))
-        {
-            _yaraExe = yexe; _yaraRules = yrules; return;
+        // Файлов рядом нет (standalone exe) — распаковываем вшитые копии.
+        TryExtractResource("yr.exe", out _yaraExe);
+        TryExtractResource("shadow_engine.exe", out _rustExe);
+        TryExtractResource("rules.yarx", out _yaraRules);
+        TryExtractResource("modern_stealers.yar", out _yaraModernRules);
+        if (_yaraExe == null || (_yaraRules == null && _yaraModernRules == null)) {
+            _yaraExe = null; _rustExe = null; _yaraRules = null; _yaraModernRules = null;
         }
-        _yaraExe = null; _yaraRules = null;
     }
 
     // Извлечение вшитого ресурса в папку exe (если файла там ещё нет)
@@ -447,7 +459,7 @@ static partial class ScannerCore {
     // Раньше yr.exe спавнился на каждый файл (~0.4-1.5 с) — пачка 100 файлов
     // обходилась в 40-150 с только на yara-фазе. Теперь один запуск на пачку.
     public static void RunYaraBatch(List<ScanResult> results) {
-        if (_yaraExe == null || _yaraRules == null) return;
+        if (_yaraExe == null || (_yaraRules == null && _yaraModernRules == null)) return;
         // отбираем файлы: исполняемые/скрипты, не error, не гиганты (yr.exe читает их целиком)
         var targets = new List<ScanResult>();
         foreach (var r in results) {
@@ -469,57 +481,73 @@ static partial class ScannerCore {
             foreach (var r in targets) sb.AppendLine(r.File.Replace('/', '\\'));
             File.WriteAllText(listFile, sb.ToString(), new UTF8Encoding(false));
 
-            var psi = new System.Diagnostics.ProcessStartInfo {
-                FileName = _yaraExe,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-            };
-            psi.ArgumentList.Add("scan");
-            psi.ArgumentList.Add("--compiled-rules");
-            psi.ArgumentList.Add("-o");
-            psi.ArgumentList.Add("ndjson");
-            psi.ArgumentList.Add("--scan-list");
-            psi.ArgumentList.Add(_yaraRules);
-            psi.ArgumentList.Add(listFile);
-            using var proc = System.Diagnostics.Process.Start(psi);
-            if (proc == null) return;
-            // ReadToEnd ДО WaitForExit — классический дедлок пайпов (yr.exe >64KB stderr).
-            // Асинхронное чтение + таймаут 60 с.
-            string stdout = null, stderr = null;
-            using (var outR = proc.StandardOutput.ReadToEndAsync())
-            using (var errR = proc.StandardError.ReadToEndAsync())
-            {
-                if (!proc.WaitForExit(60_000)) { try { proc.Kill(); } catch { } return; }
-                stdout = outR.Result;
-                stderr = errR.Result;
-            }
-            if (proc.ExitCode != 0 || string.IsNullOrWhiteSpace(stdout)) return;
+            // Один список путей используется всеми наборами правил. Скомпилированная
+            // база сохраняет совместимость, а исходные правила YARA-X можно обновлять
+            // без замены старого артефакта.
+            var ruleSets = new List<(string path, bool compiled)>();
+            if (_yaraRules != null) ruleSets.Add((_yaraRules, true));
+            if (_yaraModernRules != null)
+                ruleSets.Add((_yaraModernRules, _yaraModernRules.EndsWith(".yarx", StringComparison.OrdinalIgnoreCase)));
 
             // маппинг вывода (путь C:/...) -> ScanResult
             var byPath = new Dictionary<string, ScanResult>(StringComparer.OrdinalIgnoreCase);
             foreach (var r in targets) byPath[Path.GetFullPath(r.File)] = r;
-            // Сначала собираем совпадения, применяем ПОСЛЕ запуска Rust-движка
+            // Сначала собираем совпадения, применяем ПОСЛЕ запуска Rust-движка.
             var matches = new List<(ScanResult res, string id, string cat)>();
-            foreach (var line in stdout.Split('\n')) {
-                if (string.IsNullOrWhiteSpace(line) || !line.Contains("\"rules\"")) continue;
-                try {
-                    using var doc = JsonDocument.Parse(line);
-                    var root = doc.RootElement;
-                    string p = root.TryGetProperty("path", out var pp) ? pp.GetString() : null;
-                    if (p == null || !byPath.TryGetValue(Path.GetFullPath(p.Replace('/', '\\')), out var res)) continue;
-                    if (!root.TryGetProperty("rules", out var rulesArr) || rulesArr.ValueKind != JsonValueKind.Array) continue;
-                    foreach (var r in rulesArr.EnumerateArray()) {
-                        string id = r.TryGetProperty("identifier", out var idp) ? idp.GetString() ?? "yara" : "yara";
-                        string cat = "yara";
-                        string lowerId = id.ToLowerInvariant();
-                        foreach (var (sub, c) in YARA_CAT_MAP)
-                            if (lowerId.Contains(sub)) { cat = c; break; }
-                        matches.Add((res, id, cat));
+            var seenMatches = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var (rulesPath, compiled) in ruleSets)
+            {
+                try
+                {
+                    var psi = new System.Diagnostics.ProcessStartInfo {
+                        FileName = _yaraExe,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        StandardOutputEncoding = Encoding.UTF8,
+                    };
+                    psi.ArgumentList.Add("scan");
+                    if (compiled) psi.ArgumentList.Add("--compiled-rules");
+                    psi.ArgumentList.Add("-o");
+                    psi.ArgumentList.Add("ndjson");
+                    psi.ArgumentList.Add("--scan-list");
+                    psi.ArgumentList.Add(rulesPath);
+                    psi.ArgumentList.Add(listFile);
+                    using var proc = System.Diagnostics.Process.Start(psi);
+                    if (proc == null) continue;
+                    // Читаем оба pipe до ожидания завершения, иначе большой stderr
+                    // может заблокировать дочерний процесс.
+                    using (var outR = proc.StandardOutput.ReadToEndAsync())
+                    using (var errR = proc.StandardError.ReadToEndAsync())
+                    {
+                        if (!proc.WaitForExit(60_000)) { try { proc.Kill(); } catch { } continue; }
+                        string stdout = outR.Result;
+                        if (proc.ExitCode != 0 || string.IsNullOrWhiteSpace(stdout)) continue;
+
+                        foreach (var line in stdout.Split('\n')) {
+                            if (string.IsNullOrWhiteSpace(line) || !line.Contains("\"rules\"")) continue;
+                            try {
+                                using var doc = JsonDocument.Parse(line);
+                                var root = doc.RootElement;
+                                string p = root.TryGetProperty("path", out var pp) ? pp.GetString() : null;
+                                if (p == null || !byPath.TryGetValue(Path.GetFullPath(p.Replace('/', '\\')), out var res)) continue;
+                                if (!root.TryGetProperty("rules", out var rulesArr) || rulesArr.ValueKind != JsonValueKind.Array) continue;
+                                foreach (var r in rulesArr.EnumerateArray()) {
+                                    string id = r.TryGetProperty("identifier", out var idp) ? idp.GetString() ?? "yara" : "yara";
+                                    string matchKey = Path.GetFullPath(res.File) + "\n" + id;
+                                    if (!seenMatches.Add(matchKey)) continue;
+                                    string cat = "yara";
+                                    string lowerId = id.ToLowerInvariant();
+                                    foreach (var (sub, c) in YARA_CAT_MAP)
+                                        if (lowerId.Contains(sub)) { cat = c; break; }
+                                    matches.Add((res, id, cat));
+                                }
+                            } catch { /* пропускаем битые строки вывода */ }
+                        }
                     }
-                } catch { /* пропускаем битые строки вывода */ }
+                }
+                catch { /* один набор правил не должен отключать остальные */ }
             }
             if (matches.Count > 0)
             {

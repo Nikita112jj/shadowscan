@@ -1,0 +1,8 @@
+mshta
+rundll32
+powershell
+WebDAV
+schtasks
+Login Data
+Web Data
+CryptUnprotectData

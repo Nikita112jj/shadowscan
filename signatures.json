@@ -566,6 +566,91 @@
    ],
    "min_hits": 1,
    "pe_safe": true
+  },
+  {
+   "category": "stealer",
+   "name": "Rust: browser credential collector",
+   "family": "Generic Rust infostealer",
+   "weight": 10,
+   "patterns": [
+    "rust_eh_personality",
+    "core::panicking",
+    "core::result::unwrap_failed",
+    "Login Data",
+    "Local State",
+    "Cookies",
+    "CryptUnprotectData",
+    "webSocketDebuggerUrl",
+    "api.telegram.org",
+    "discord.com/api/webhooks"
+   ],
+   "min_hits": 4,
+   "pe_safe": true,
+   "source": "ShadowScan composite rule; Trellix and Elastic Rust stealer research"
+  },
+  {
+   "category": "stealer",
+   "name": "Myth Stealer: Rust loader profile",
+   "family": "Myth Stealer",
+   "weight": 10,
+   "patterns": [
+    "native-windows-gui",
+    "include-crypt",
+    "memexec",
+    "obfstr",
+    "myth-key",
+    "winlnk.exe",
+    ".lnkk",
+    "Login Data",
+    "Cookies",
+    "clipboard",
+    "screenshot"
+   ],
+   "min_hits": 4,
+   "pe_safe": true,
+   "source": "Trellix Advanced Research Center, 2025"
+  },
+  {
+   "category": "stealer",
+   "name": "EDDIESTEALER: Rust tasking profile",
+   "family": "EDDIESTEALER",
+   "weight": 10,
+   "patterns": [
+    "chromium_hound.rs",
+    "search_pattern.rs",
+    "search_entry.rs",
+    "additional_task.rs",
+    "WaitOnAddress",
+    "self_delete",
+    "api/handler",
+    "webSocketDebuggerUrl",
+    "Login Data",
+    "Local State"
+   ],
+   "min_hits": 4,
+   "pe_safe": true,
+   "source": "Elastic Security Labs, 2025"
+  },
+  {
+   "category": "stealer",
+   "name": "ACR/Amatera: browser theft delivery chain",
+   "family": "ACR Stealer / Amatera",
+   "weight": 9,
+   "patterns": [
+    "mshta",
+    "rundll32",
+    "powershell",
+    "WebDAV",
+    "schtasks",
+    "ConvertThreadToFiber",
+    "VirtualAlloc",
+    "Login Data",
+    "Web Data",
+    "CryptUnprotectData"
+   ],
+   "min_hits": 5,
+   "pe_safe": true,
+   "source": "Microsoft Security Research, 2026"
   }
  ],
  "magic": [

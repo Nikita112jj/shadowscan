@@ -41,7 +41,9 @@
 - 🔓 **Деобфускатор** — Base64, XOR, реверс строк
 - 🖥️ **CLI-интерфейс** — `ShadowScan.exe --scan файлы...` с выводом JSON
 - 📦 **Вшитые ресурсы** — yr.exe, rules.yarx, signatures.json распаковываются при запуске
-- 📊 **36 string-правил** — детекты njRAT, DarkComet, Gh0st, XWorm, AsyncRAT и других семейств
+- 📊 **40 string-правил** — детекты njRAT, DarkComet, Gh0st, XWorm, AsyncRAT и других семейств
+- 🦀 **YARA-X v1.19.0 из исходников** — официальный runtime и CLI VirusTotal в `third_party/yara-x` с BSD-3-Clause лицензией
+- 🧬 **Современные профили стилеров** — составные правила для Myth Stealer, EDDIESTEALER-style, generic Rust infostealers и ACR/Amatera-style browser theft chains
 
 ---
 
@@ -54,17 +56,24 @@
 | `RtProtection.cs` | Real-time защита: DACL-урезание, мониторинг сети, автоочистка |
 | `AutorunsManager.cs` | Управление автозагрузкой: чтение, отключение, включение |
 | `Deobfuscator.cs` | Базовый деобфускатор: Base64, XOR, reverse strings |
-| `signatures.json` | 36 string-правил для детекта семейств малвари |
-| `rules.yarx` | YARA-правила (вшитый ресурс) |
-| `yr.exe` | YARA-сканер CLI (вшитый ресурс) |
+| `signatures.json` | 40 string-правил для детекта семейств малвари |
+| `rules.yarx` | Legacy compiled YARA-X rules (embedded resource) |
+| `rules/modern_stealers.yar` | Auditable source rules for modern Rust stealers and delivery chains |
+| `third_party/yara-x/` | Pinned YARA-X v1.19.0 runtime and CLI source |
+| `scripts/build-yara-x.ps1` | Reproducible Windows build for `yr.exe` and optional compiled rules |
+| `yr.exe` | YARA-X scanner CLI (generated build artifact) |
 
 ---
 
 ## 📦 Сборка
 
 ```bash
-# Требуется .NET 8 SDK и Rust toolchain
-dotnet publish -c Release -r win-x64 --self-contained `
+# Требуются .NET 8 SDK и Rust toolchain
+# Сначала соберите официальный YARA-X CLI из vendored source:
+.\\scripts\\build-yara-x.ps1
+.\\scripts\\test-yara-x.ps1
+
+ dotnet publish -c Release -r win-x64 --self-contained `
   -p:PublishAot=true -p:AssemblyName=ss_core
 ```
 
@@ -134,11 +143,15 @@ ShadowScan.exe --scan file1.exe file2.dll folder/
 | Dyre | Banker | ✅ Детект |
 | Discord | Stealer | ✅ Детект |
 | Lumma | Stealer | ✅ Детект |
+| Myth Stealer | Rust Stealer | ✅ Composite profile |
+| EDDIESTEALER-style | Rust Stealer | ✅ Composite profile |
+| Generic Rust infostealer | Rust Stealer | ✅ Composite profile |
+| ACR/Amatera-style chain | Stealer | ✅ Composite profile |
 | SystemBC | Proxy | ✅ Детект |
 | AMSI-bypass | Evasion | ✅ Детект |
 | banker-webinject | Banker | ✅ Детект |
 
-**Итого: 36 строковых правил** в `signatures.json`.
+**Итого: 40 строковых правил** в `signatures.json`.
 
 ---
 
@@ -199,7 +212,9 @@ MIT License. Проект является оборонительным инст
 - 🔓 **Deobfuscator** — Base64, XOR, string reversal
 - 🖥️ **CLI interface** — `ShadowScan.exe --scan files...` with JSON output
 - 📦 **Embedded resources** — yr.exe, rules.yarx, signatures.json extracted on first run
-- 📊 **36 string rules** — detections for njRAT, DarkComet, Gh0st, XWorm, AsyncRAT and more
+- 📊 **40 string rules** — detections for njRAT, DarkComet, Gh0st, XWorm, AsyncRAT and more
+- 🦀 **YARA-X v1.19.0 from source** — the official VirusTotal runtime and CLI are vendored under `third_party/yara-x` under the BSD-3-Clause license
+- 🧬 **Modern stealer profiles** — composite rules for Myth Stealer, EDDIESTEALER-style, generic Rust infostealers, and ACR/Amatera-style browser-theft chains
 
 ---
 
@@ -212,9 +227,12 @@ MIT License. Проект является оборонительным инст
 | `RtProtection.cs` | Real-time protection: DACL trimming, network monitoring, auto-remediation |
 | `AutorunsManager.cs` | Autoruns management: read, disable, enable |
 | `Deobfuscator.cs` | Basic deobfuscator: Base64, XOR, reverse strings |
-| `signatures.json` | 36 string rules for malware family detection |
-| `rules.yarx` | YARA rules (embedded resource) |
-| `yr.exe` | YARA scanner CLI (embedded resource) |
+| `signatures.json` | 40 string rules for malware family detection |
+| `rules.yarx` | Legacy compiled YARA-X rules (embedded resource) |
+| `rules/modern_stealers.yar` | Auditable source rules for modern Rust stealers and delivery chains |
+| `third_party/yara-x/` | Pinned YARA-X v1.19.0 runtime and CLI source |
+| `scripts/build-yara-x.ps1` | Reproducible Windows build for `yr.exe` and optional compiled rules |
+| `yr.exe` | YARA-X scanner CLI (generated build artifact) |
 
 ---
 
@@ -222,7 +240,11 @@ MIT License. Проект является оборонительным инст
 
 ```bash
 # Requires .NET 8 SDK and Rust toolchain
-dotnet publish -c Release -r win-x64 --self-contained `
+# First build the official YARA-X CLI from the vendored source:
+.\\scripts\\build-yara-x.ps1
+.\\scripts\\test-yara-x.ps1
+
+ dotnet publish -c Release -r win-x64 --self-contained `
   -p:PublishAot=true -p:AssemblyName=ss_core
 ```
 
@@ -292,11 +314,15 @@ ShadowScan.exe --scan file1.exe file2.dll folder/
 | Dyre | Banker | ✅ Detected |
 | Discord | Stealer | ✅ Detected |
 | Lumma | Stealer | ✅ Detected |
+| Myth Stealer | Rust Stealer | ✅ Composite profile |
+| EDDIESTEALER-style | Rust Stealer | ✅ Composite profile |
+| Generic Rust infostealer | Rust Stealer | ✅ Composite profile |
+| ACR/Amatera-style chain | Stealer | ✅ Composite profile |
 | SystemBC | Proxy | ✅ Detected |
 | AMSI-bypass | Evasion | ✅ Detected |
 | banker-webinject | Banker | ✅ Detected |
 
-**Total: 36 string rules** in `signatures.json`.
+**Total: 40 string rules** in `signatures.json`.
 
 ---
 
