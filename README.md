@@ -7,16 +7,16 @@
 ## 📸 Скриншоты
 
 ### Скан
-![Скан](screenshots/scan.png)
+![Скан](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/scan.png)
 
 ### Журнал
-![Журнал](screenshots/journal.png)
+![Журнал](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/journal.png)
 
 ### Настройки
-![Настройки](screenshots/settings.png)
+![Настройки](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/settings.png)
 
 ### Карантин
-![Карантин](screenshots/quarantine.png)
+![Карантин](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/quarantine.png)
 
 ---
 
@@ -161,16 +161,16 @@ MIT License. Проект является оборонительным инст
 ## 📸 Screenshots
 
 ### Scan
-![Scan](screenshots/scan.png)
+![Scan](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/scan.png)
 
 ### Detection Log
-![Journal](screenshots/journal.png)
+![Journal](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/journal.png)
 
 ### Settings
-![Settings](screenshots/settings.png)
+![Settings](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/settings.png)
 
 ### Quarantine
-![Quarantine](screenshots/quarantine.png)
+![Quarantine](https://github.com/Nikita112jj/shadowscan/releases/download/v1.0/quarantine.png)
 
 ---
 
