@@ -6,12 +6,17 @@
 
 ## 📸 Скриншоты
 
-<!-- Замените на реальные скриншоты -->
+### Скан
+![Скан](screenshots/scan.png)
 
-[Screenshot — Вкладка Скан]
-[Screenshot — Вкладка Автозагрузки]
-[Screenshot — Журнал детектов]
-[Screenshot — Настройки]
+### Журнал
+![Журнал](screenshots/journal.png)
+
+### Настройки
+![Настройки](screenshots/settings.png)
+
+### Карантин
+![Карантин](screenshots/quarantine.png)
 
 ---
 
@@ -155,12 +160,17 @@ MIT License. Проект является оборонительным инст
 
 ## 📸 Screenshots
 
-<!-- Replace with actual screenshots -->
+### Scan
+![Scan](screenshots/scan.png)
 
-[Screenshot — Scan Tab]
-[Screenshot — Autoruns Tab]
-[Screenshot — Detection Log]
-[Screenshot — Settings]
+### Detection Log
+![Journal](screenshots/journal.png)
+
+### Settings
+![Settings](screenshots/settings.png)
+
+### Quarantine
+![Quarantine](screenshots/quarantine.png)
 
 ---
 
