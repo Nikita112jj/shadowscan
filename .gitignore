@@ -1,0 +1,27 @@
+# Build output
+*.exe
+*.dll
+*.pdb
+*.log
+publish/
+bin/
+obj/
+build/
+rust_engine/target/
+
+# Logs
+logs/
+shadowscan.log
+
+# Test samples (malware)
+samples/
+test_obf/
+_fp_*.json
+_fp_*.py
+
+# Archives
+*.zip
+
+# OS
+Thumbs.db
+Desktop.ini

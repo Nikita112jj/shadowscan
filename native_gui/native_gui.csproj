@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <AssemblyName>ShadowScan</AssemblyName>
+    <PublishAot>true</PublishAot>
+    <SelfContained>true</SelfContained>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <StripSymbols>true</StripSymbols>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.5" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.5" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.5" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.5" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.5" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Нативные DLL вшиты в exe, распаковываются при первом запуске -->
+    <EmbeddedResource Include="native\libSkiaSharp.dll" LogicalName="libSkiaSharp.dll" />
+    <EmbeddedResource Include="native\libHarfBuzzSharp.dll" LogicalName="libHarfBuzzSharp.dll" />
+    <EmbeddedResource Include="native\av_libglesv2.dll" LogicalName="av_libglesv2.dll" />
+    <!-- Движок yara + правила вшиты: exe работает standalone, без файлов рядом -->
+    <EmbeddedResource Include="..\yr.exe" LogicalName="yr.exe" />
+    <EmbeddedResource Include="..\rules.yarx" LogicalName="rules.yarx" />
+    <EmbeddedResource Include="..\signatures.json" LogicalName="signatures.json" />
+  </ItemGroup>
+</Project>

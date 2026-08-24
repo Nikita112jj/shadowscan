@@ -1,0 +1,15 @@
+[package]
+name = "shadow_engine"
+version = "0.1.0"
+edition = "2021"
+
+# Лёгкий эвристический движок на Rust: дружит с yara-x — подтверждает или
+# отклоняет его совпадения (снижение FP), делает быстрый энтропийно-строковый анализ.
+# Сборка:  cargo build --release  ->  target/release/shadow_engine.exe
+# Запуск:  shadow_engine.exe файл1 файл2 ...   (вывод JSON в stdout)
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+panic = "abort"

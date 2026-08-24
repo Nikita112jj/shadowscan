@@ -1,0 +1,674 @@
+{
+ "format_version": 1,
+ "meta": {
+  "name": "ShadowScan signature database",
+  "description": "Расширенная офлайн-база сигнатур: известные хэши SHA-256, строковые правила семейств, магические байты файлов, опасные расширения",
+  "updated": "2026-08-21",
+  "backward_compat": "текущий движок (Program.cs) читает только секцию 'hashes' (name + severity). Остальные секции безопасно игнорируются и готовы к подключению в движке.",
+  "severity_map": "для строковых правил вес (weight) >= 8 -> high, >= 5 -> medium, иначе low; severity продублирован для GUI",
+  "caution": "хэши брались из публичных IOC-списков ESET, Neo23x0/signature-base, Nokia Deepfield ERT и проверялись по OTX AlienVault. Строковые правила — по публичным YARA-сигнатурам cystack/stealer-fingerprints и Deepfield (Katana/Mirai)."
+ },
+ "hashes": {
+  "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f": {
+   "name": "EICAR test file",
+   "severity": "high",
+   "category": "test",
+   "family": "EICAR",
+   "source": "https://www.eicar.org/"
+  },
+  "24d004a104d4d54034dbcffc2a4b19a11f39008a575aa614ea04703480b1022c": {
+   "name": "WannaCry (mssecsvc.exe, май 2017)",
+   "severity": "high",
+   "category": "ransomware",
+   "family": "WannaCry",
+   "source": "https://otx.alienvault.com/indicator/file/24d004a104d4d54034dbcffc2a4b19a11f39008a575aa614ea04703480b1022c"
+  },
+  "027cc450ef5f8c5f653329641ec1fed91f694e0d229928963b30f6b0d7d3a745": {
+   "name": "NotPetya (ExPetr/Nyetya, июнь 2017)",
+   "severity": "high",
+   "category": "wiper",
+   "family": "NotPetya",
+   "source": "https://github.com/Neo23x0/signature-base/blob/master/yara/crime_nopetya_jun17.yar"
+  },
+  "45ef8d53a5a2011e615f60b058768c44c74e5190fefd790ca95cf035d9e1d5e0": {
+   "name": "NotPetya (вариант, июнь 2017)",
+   "severity": "high",
+   "category": "wiper",
+   "family": "NotPetya",
+   "source": "https://github.com/Neo23x0/signature-base/blob/master/yara/crime_nopetya_jun17.yar"
+  },
+  "4f49e17b457ef202ab0be905691ef2b2d2b0a086a7caddd1e70dd45e5ed3b309": {
+   "name": "EternalBlue (DoublePulsar, не-WannaCry эксплойт)",
+   "severity": "high",
+   "category": "exploit",
+   "family": "EternalBlue",
+   "source": "https://github.com/Neo23x0/signature-base/blob/master/yara/apt_eternalblue_non_wannacry.yar"
+  },
+  "cba19d228abf31ec8afab7330df3c9da60cd4dae376552b503aea6d7feff9946": {
+   "name": "EternalBlue (вариант эксплойта)",
+   "severity": "high",
+   "category": "exploit",
+   "family": "EternalBlue",
+   "source": "https://github.com/Neo23x0/signature-base/blob/master/yara/apt_eternalblue_non_wannacry.yar"
+  },
+  "b88306f2ed133b9974c33ba731bde72510d1ec5a08a766f8e3299a3c3da33a67": {
+   "name": "AsyncRAT client (клиент удалённого доступа)",
+   "severity": "high",
+   "category": "rat",
+   "family": "AsyncRAT",
+   "source": "https://github.com/eset/malware-ioc/blob/master/asyncrat/samples.sha256"
+  },
+  "b80d19a26a576d2ed83e2717d80c8013bbc4f34083a70dd4e8adf33ede08345b": {
+   "name": "RedLine stealer",
+   "severity": "high",
+   "category": "stealer",
+   "family": "RedLine",
+   "source": "https://github.com/eset/malware-ioc/blob/master/redline/samples.sha256"
+  },
+  "88359aebe48768a0bf2875e63ea852418d0d05ccef2ec82eb4c60c9dc6bc5f72": {
+   "name": "Lumma stealer (LummaC2)",
+   "severity": "high",
+   "category": "stealer",
+   "family": "Lumma",
+   "source": "https://github.com/eset/malware-ioc/blob/master/lummastealer/samples.sha256"
+  },
+  "4915089489c8f7e4f91a2d17a00c9c17a469b1d509983aae0e21dfe6877ee008": {
+   "name": "Emotet (троян-ботнет)",
+   "severity": "high",
+   "category": "trojan",
+   "family": "Emotet",
+   "source": "https://github.com/eset/malware-ioc/blob/master/emotet/samples.sha256"
+  },
+  "b949e95160734c2240ed6f330a5586e2a890264ae207df2b2f7209e361b1d239": {
+   "name": "Petya/HybridPetya (ransomware)",
+   "severity": "high",
+   "category": "ransomware",
+   "family": "Petya",
+   "source": "https://github.com/eset/malware-ioc/blob/master/hybridpetya/samples.sha256"
+  },
+  "40a4b5e54fecce52c9d8ef5b2fa3973a3dd748c5bcedd7bde1154aa4a936c2e1": {
+   "name": "DynoWiper (вариант NotPetya, 2023)",
+   "severity": "high",
+   "category": "wiper",
+   "family": "NotPetya",
+   "source": "https://github.com/eset/malware-ioc/blob/master/dynowiper/samples.sha256"
+  },
+  "90adcb7e8453f42418b739f7b660facbae24806bbf44e3d11dba2f8dafc23c2c": {
+   "name": "Dark.IoT (IoT-ботнет на базе Mirai, 2-я стадия)",
+   "severity": "medium",
+   "category": "botnet",
+   "family": "Mirai",
+   "source": "https://github.com/eset/malware-ioc/blob/master/dark_iot/samples.sha256"
+  },
+  "6cc3fc0284dfe57881f5ea01dcd3cecb6c667dc8d1147b049c3d6bd661d9c906": {
+   "name": "Katana (вариант Mirai, ELF x86_64 DDoS-бот)",
+   "severity": "medium",
+   "category": "botnet",
+   "family": "Mirai",
+   "source": "https://github.com/deepfield/public-research/blob/main/katana/iocs/hashes.csv"
+  }
+ },
+ "string_rules": [
+  {
+   "name": "RedLine stealer: поля лога",
+   "category": "stealer",
+   "family": "RedLine",
+   "severity": "high",
+   "weight": 10,
+   "patterns": [
+    "Available KeyboardLayouts:",
+    "Hardwares:",
+    "FileLocation:",
+    "Log date:"
+   ],
+   "case_insensitive": true,
+   "pe_safe": true,
+   "min_hits": 2,
+   "source": "https://github.com/cystack/stealer-fingerprints/tree/master/families/redline"
+  },
+  {
+   "name": "Lumma stealer: поля лога",
+   "category": "stealer",
+   "family": "Lumma",
+   "severity": "high",
+   "weight": 10,
+   "patterns": [
+    "LummaC2 Build:",
+    "LID:",
+    "HWID:"
+   ],
+   "case_insensitive": true,
+   "pe_safe": true,
+   "min_hits": 2,
+   "source": "https://github.com/cystack/stealer-fingerprints/tree/master/families/lumma"
+  },
+  {
+   "name": "Vidar stealer: поля лога",
+   "category": "stealer",
+   "family": "Vidar",
+   "severity": "high",
+   "weight": 10,
+   "patterns": [
+    "Work Dir:",
+    "Kingdom:",
+    "MachineID:",
+    "Keyboard Languages:"
+   ],
+   "case_insensitive": true,
+   "pe_safe": true,
+   "min_hits": 2,
+   "source": "https://github.com/cystack/stealer-fingerprints/tree/master/families/vidar"
+  },
+  {
+   "name": "AsyncRAT: маркеры клиента",
+   "category": "rat",
+   "family": "AsyncRAT",
+   "severity": "high",
+   "weight": 10,
+   "patterns": [
+    "AsyncMutex",
+    "AsyncRAT Server",
+    "AsyncRAT"
+   ],
+   "case_insensitive": true,
+   "pe_safe": true,
+   "min_hits": 1,
+   "source": "https://www.welivesecurity.com/en/eset-research/unmasking-asyncrat-navigating-labyrinth-forks/"
+  },
+  {
+   "name": "DcRAT: поля лога",
+   "category": "rat",
+   "family": "DcRAT",
+   "severity": "high",
+   "weight": 10,
+   "patterns": [
+    "LANIP:",
+    "Save Time:",
+    "GPU Mode:",
+    "Framework Version:"
+   ],
+   "case_insensitive": true,
+   "pe_safe": true,
+   "min_hits": 2,
+   "source": "https://github.com/cystack/stealer-fingerprints/tree/master/families/dc_rat"
+  },
+  {
+   "name": "XMRig: конфиг и версия майнера",
+   "category": "miner",
+   "family": "XMRig",
+   "severity": "high",
+   "weight": 8,
+   "patterns": [
+    "donate-level",
+    "stratum+tcp",
+    "XMRig/"
+   ],
+   "case_insensitive": true,
+   "pe_safe": true,
+   "min_hits": 2,
+   "source": "https://github.com/xmrig/xmrig"
+  },
+  {
+   "name": "Mirai: строки IoT-ботнета",
+   "category": "botnet",
+   "family": "Mirai",
+   "severity": "high",
+   "weight": 8,
+   "patterns": [
+    "/bin/busybox MIRAI",
+    "god will save us all",
+    "/tmp/.dns_cache",
+    "/var/.domains"
+   ],
+   "case_insensitive": true,
+   "pe_safe": true,
+   "min_hits": 2,
+   "source": "https://github.com/deepfield/public-research/blob/main/katana/detection/katana.yar"
+  },
+  {
+   "category": "rat",
+   "name": "njRAT (маркер семейства)",
+   "weight": 9,
+   "patterns": [
+    "njRAT",
+    "NJRAT_"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "rat",
+   "name": "DarkComet (маркер)",
+   "weight": 9,
+   "patterns": [
+    "DARKCOMET",
+    "DC_MUTEX-",
+    "DC2011",
+    "DC2012"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "rat",
+   "name": "Gh0st RAT (маркер)",
+   "weight": 9,
+   "patterns": [
+    "Gh0st",
+    "gh0st"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "rat",
+   "name": "XtremeRAT (маркер)",
+   "weight": 9,
+   "patterns": [
+    "XtremeRAT",
+    "Xtreme ",
+    "xtreme.exe"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "rat",
+   "name": "AsyncRAT (маркер)",
+   "weight": 9,
+   "patterns": [
+    "AsyncRAT",
+    "AsyncMutex",
+    "AsyncClient"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "rat",
+   "name": "XWorm (маркер)",
+   "weight": 9,
+   "patterns": [
+    "XWorm",
+    "xworm"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "rat",
+   "name": "Remcos (маркер)",
+   "weight": 9,
+   "patterns": [
+    "Remcos",
+    "REMCONS"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "stealer",
+   "name": "Formbook/XLoader (маркер)",
+   "weight": 9,
+   "patterns": [
+    "FormBook",
+    "formbook",
+    "XLoader"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "stealer",
+   "name": "Agent Tesla (маркер)",
+   "weight": 9,
+   "patterns": [
+    "Agent Tesla",
+    "agenttesla",
+    "AgentTesla"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "stealer",
+   "name": "LokiBot (маркер)",
+   "weight": 9,
+   "patterns": [
+    "lokibot",
+    "LokiBot",
+    "Loki ",
+    "lokiPW"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "stealer",
+   "name": "HawkEye (маркер)",
+   "weight": 9,
+   "patterns": [
+    "HawkEye",
+    "hawkeye",
+    "HAWK."
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "loader",
+   "name": "GuLoader/VB6 (маркер)",
+   "weight": 6,
+   "patterns": [
+    "GuLoader",
+    "MSVBVM60.DLL"
+   ],
+   "min_hits": 2,
+   "pe_safe": true
+  },
+  {
+   "category": "loader",
+   "name": "DarkGate/AutoIt (маркер)",
+   "weight": 6,
+   "patterns": [
+    "AutoIt3",
+    "AU3!",
+    "AUTOIT"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "loader",
+   "name": "WhiteSnake/PyInstaller (маркер)",
+   "weight": 4,
+   "patterns": [
+    "pyi-",
+    "_MEIPASS",
+    "MEI"
+   ],
+   "min_hits": 2,
+   "pe_safe": true
+  },
+  {
+   "category": "banker",
+   "name": "Zeus/линия (маркеры)",
+   "weight": 8,
+   "patterns": [
+    "sdra64.exe",
+    "ntos.exe",
+    "lowsec.exe",
+    "wincom32.exe",
+    "gate.php",
+    "_AVIRA_2109"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "banker",
+   "name": "TrickBot (маркер)",
+   "weight": 9,
+   "patterns": [
+    "pwgrab",
+    "systeminfo32.dll",
+    "mailsearcher",
+    "powerspam",
+    "network32.dll"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "loader",
+   "name": "Dridex/Emotet (маркер)",
+   "weight": 8,
+   "patterns": [
+    "MsUpdate",
+    "updater.exe"
+   ],
+   "min_hits": 2,
+   "pe_safe": true
+  },
+  {
+   "category": "rat",
+   "name": "PoisonIvy/PlugX (маркер)",
+   "weight": 8,
+   "patterns": [
+    "POISON_IVY",
+    "PoisonIvy",
+    "PlugX",
+    "Kabash"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "wiper",
+   "name": "Ramnit (HTML-инфекция)",
+   "weight": 8,
+   "patterns": [
+    "Ramnit",
+    "ramnit"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "botnet",
+   "name": "Conficker/Sality (маркер)",
+   "weight": 8,
+   "patterns": [
+    "Conficker",
+    "conficker",
+    "Sality",
+    "sality"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "stealer",
+   "name": "AZORult (Telegram tdata)",
+   "weight": 8,
+   "patterns": [
+    "tdata",
+    "Telegram Desktop\tdata"
+   ],
+   "min_hits": 1,
+   "pe_safe": false
+  },
+  {
+   "category": "stealer",
+   "name": "Fareit/Pony (FTP-кража)",
+   "weight": 7,
+   "patterns": [
+    "recentservers.xml",
+    "sitemanager.xml",
+    "wallet.dat"
+   ],
+   "min_hits": 2,
+   "pe_safe": false
+  },
+  {
+   "category": "persistence",
+   "name": "Kovter: fileless через CLSID",
+   "weight": 9,
+   "patterns": [
+    "Software\\Classes\\CLSID",
+    "rundll32"
+   ],
+   "min_hits": 2,
+   "pe_safe": false
+  },
+  {
+   "category": "persistence",
+   "name": "Dyre: AppInit_DLLs",
+   "weight": 7,
+   "patterns": [
+    "AppInit_DLLs"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "stealer",
+   "name": "стилер: Discord leveldb",
+   "weight": 8,
+   "patterns": [
+    "Local Storage\\leveldb",
+    "leveldb"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "stealer",
+   "name": "Lumma: расширения кошельков",
+   "weight": 8,
+   "patterns": [
+    "Local Extension Settings",
+    "nkbihfbeogaeaoehlefnkodbefgpgknn"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  },
+  {
+   "category": "botnet",
+   "name": "SystemBC: SOCKS5 прокси",
+   "weight": 8,
+   "patterns": [
+    "socks5",
+    "127.0.0.1"
+   ],
+   "min_hits": 2,
+   "pe_safe": true
+  },
+  {
+   "category": "evasion",
+   "name": "криптер: AMSI-байпас",
+   "weight": 9,
+   "patterns": [
+    "amsi.dll",
+    "AmsiScanBuffer"
+   ],
+   "min_hits": 2,
+   "pe_safe": true
+  },
+  {
+   "category": "banker",
+   "name": "банкер: webinject маркеры",
+   "weight": 8,
+   "patterns": [
+    "webinject",
+    "inject_html",
+    "set_url"
+   ],
+   "min_hits": 1,
+   "pe_safe": true
+  }
+ ],
+ "magic": [
+  {
+   "name": "PE executable (MZ)",
+   "category": "format",
+   "hex": "4D5A",
+   "offset": 0,
+   "note": "MS-DOS/PE заголовок файлов Windows; движок уже детектирует нативно"
+  },
+  {
+   "name": "ELF executable",
+   "category": "format",
+   "hex": "7F454C46",
+   "offset": 0,
+   "note": "Linux/Unix бинарник; .ELF"
+  },
+  {
+   "name": "ZIP archive (PK)",
+   "category": "format",
+   "hex": "504B0304",
+   "offset": 0,
+   "note": "PK\\x03\\x04; также 50 4B 05 06 (пустой) и 50 4B 07 08 (многотомный)"
+  },
+  {
+   "name": "PDF document",
+   "category": "format",
+   "hex": "25504446",
+   "offset": 0,
+   "note": "%PDF; может содержать JS/эксплойты"
+  },
+  {
+   "name": "OLE2 Compound File (CFB)",
+   "category": "format",
+   "hex": "D0CF11E0A1B11AE1",
+   "offset": 0,
+   "note": "DOC/XLS/PPT/MSI и макросы .docm/.xlsm"
+  },
+  {
+   "name": "GZIP archive",
+   "category": "format",
+   "hex": "1F8B",
+   "offset": 0,
+   "note": "gzip-сжатые данные"
+  },
+  {
+   "name": "7-Zip archive",
+   "category": "format",
+   "hex": "377ABCAF271C",
+   "offset": 0,
+   "note": "7z"
+  },
+  {
+   "name": "RAR archive",
+   "category": "format",
+   "hex": "52617221",
+   "offset": 0,
+   "note": "Rar!; версии 4.x/5.x"
+  },
+  {
+   "name": "SQLite database",
+   "category": "format",
+   "hex": "53514C69746520666F726D6174203300",
+   "offset": 0,
+   "note": "\"SQLite format 3\\0\"; базы браузеров и приложений"
+  }
+ ],
+ "extensions": [
+  {
+   "extension": ".scr",
+   "category": "suspicious_ext",
+   "severity": "medium",
+   "note": "Screensaver: исполняемый код, частая маскировка в архивах и письмах"
+  },
+  {
+   "extension": ".pif",
+   "category": "suspicious_ext",
+   "severity": "medium",
+   "note": "Программная информация MS-DOS; исторический вектор доставки payload"
+  },
+  {
+   "extension": ".hta",
+   "category": "suspicious_ext",
+   "severity": "medium",
+   "note": "HTML Application, исполняется через mshta.exe"
+  },
+  {
+   "extension": ".vbe",
+   "category": "suspicious_ext",
+   "severity": "medium",
+   "note": "Зашифрованный VBScript"
+  },
+  {
+   "extension": ".jse",
+   "category": "suspicious_ext",
+   "severity": "medium",
+   "note": "Зашифрованный JScript"
+  },
+  {
+   "extension": ".com",
+   "category": "suspicious_ext",
+   "severity": "low",
+   "note": "Исполняемый файл DOS; редко легитимен на современных системах"
+  }
+ ]
+}
